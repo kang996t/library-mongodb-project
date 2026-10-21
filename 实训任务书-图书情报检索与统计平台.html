@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>实训项目 · 图书情报检索与统计平台</title>
+<style>
+
+:root{
+  --main:#264653; --sub:#2a9d8f; --accent:#e9c46a;
+  --bg:#f7f9f9; --panel:#ffffff; --ink:#2b3a3a; --muted:#6b7c7c;
+  --line:#e3eaea; --code-bg:#1e2a32;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:15px; line-height:1.75;
+}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;}
+
+/* ===== 顶栏 ===== */
+.topbar{position:sticky;top:0;z-index:50;background:var(--main);box-shadow:0 2px 12px rgba(38,70,83,.18);}
+.nav-inner{max-width:1400px;margin:0 auto;padding:0 20px;height:56px;display:flex;align-items:center;gap:22px;}
+.nav-brand{color:#fff;font-weight:700;font-size:15px;text-decoration:none;white-space:nowrap;}
+.nav-links{display:flex;gap:4px;overflow-x:auto;flex:1;}
+.nav-links a{color:rgba(255,255,255,.82);text-decoration:none;font-size:13px;padding:6px 11px;border-radius:6px;white-space:nowrap;transition:.15s;}
+.nav-links a:hover{background:rgba(255,255,255,.12);color:#fff;}
+.nav-links a.active{background:var(--sub);color:#fff;font-weight:600;}
+
+/* ===== 布局 ===== */
+.layout{display:flex;align-items:flex-start;gap:26px;max-width:1400px;margin:0 auto;padding:22px 20px 60px;}
+.sidenav{position:sticky;top:78px;flex:0 0 258px;max-height:calc(100vh - 100px);overflow-y:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 12px;box-shadow:0 2px 10px rgba(38,70,83,.05);}
+.sidenav .sn-title{font-size:11.5px;font-weight:700;color:var(--sub);letter-spacing:1.2px;padding:0 9px 9px;border-bottom:1px solid #eef2f2;margin-bottom:7px;}
+.sidenav a{display:block;padding:6px 9px;margin:1px 0;border-radius:6px;color:#465656;text-decoration:none;font-size:13px;line-height:1.45;border-left:2px solid transparent;}
+.sidenav a:hover{background:#f2f8f7;color:#1d6f66;}
+.sidenav a.lv1{font-weight:700;color:var(--main);margin-top:8px;font-size:13.5px;}
+.sidenav a.lv2{padding-left:20px;font-size:12.5px;color:#667;}
+.sidenav a.active{background:#e9f5f3;color:#1b6a61;border-left-color:var(--sub);font-weight:600;}
+main{flex:1 1 auto;min-width:0;}
+
+/* ===== 页头 ===== */
+.hero{background:linear-gradient(135deg,var(--main) 0%,#35606b 100%);color:#fff;padding:52px 20px 44px;}
+.hero-inner{max-width:1360px;margin:0 auto;}
+.hero h1{margin:0 0 10px;font-size:29px;font-weight:700;line-height:1.35;}
+.hero .subtitle{margin:0 0 20px;font-size:15px;color:var(--accent);font-weight:500;}
+.hero .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+.pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:20px;
+  padding:5px 14px;font-size:12.5px;color:#eaf4f3;}
+
+/* ===== 章节 ===== */
+section.chapter{margin-bottom:34px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:26px 30px;box-shadow:0 1px 4px rgba(38,70,83,.04);}
+h2.chapter-title{margin:0 0 6px;font-size:21px;color:var(--main);font-weight:700;padding-bottom:12px;border-bottom:2px solid var(--accent);display:inline-block;}
+.chapter-sub{margin:0 0 18px;font-size:13.5px;color:var(--muted);}
+h3.sub{margin:26px 0 10px;font-size:16px;color:var(--main);font-weight:700;padding-left:11px;border-left:4px solid var(--sub);}
+h4{margin:18px 0 8px;font-size:14.5px;color:#3a4a4a;font-weight:700;}
+p{margin:0 0 12px;}
+ul,ol{margin:0 0 14px;padding-left:24px;}
+li{margin:5px 0;}
+strong{color:var(--main);}
+
+/* ===== 表格 ===== */
+.table-wrap{overflow-x:auto;margin:14px 0 18px;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px;}
+th{background:var(--main);color:#fff;padding:10px 12px;text-align:left;font-weight:600;white-space:nowrap;}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+tbody tr:nth-child(even){background:#fafcfc;}
+tbody tr:hover{background:#f0f7f6;}
+
+/* ===== 提示框 ===== */
+.note{background:#f0f7f6;border-left:4px solid var(--sub);border-radius:0 6px 6px 0;padding:13px 17px;margin:14px 0;font-size:13.5px;color:#2f4f4c;}
+.note.warn{background:#fdf6e8;border-left-color:var(--accent);color:#6b5410;}
+.note.key{background:#f4f0fb;border-left-color:#7c5cbf;color:#463a63;}
+.note-title{font-weight:700;display:block;margin-bottom:5px;font-size:13.5px;}
+.note-title::before{content:"▍";color:var(--sub);}
+.note.warn .note-title::before{color:var(--accent);}
+.note.key .note-title::before{color:#7c5cbf;}
+
+/* ===== 代码 ===== */
+.code-wrap{position:relative;margin:12px 0 18px;}
+pre{background:var(--code-bg);color:#dfe9ec;padding:15px 17px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.65;margin:0;}
+pre code{background:none;padding:0;color:inherit;}
+.code-wrap .copy-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.12);color:#cfe3e6;border:1px solid rgba(255,255,255,.2);
+  border-radius:5px;padding:4px 11px;font-size:12px;cursor:pointer;transition:.15s;font-family:inherit;}
+.code-wrap .copy-btn:hover{background:var(--sub);color:#fff;}
+.code-wrap .copy-btn.copied{background:var(--sub);color:#fff;}
+code.inline{background:#eef3f3;color:#1d5f57;padding:1.5px 6px;border-radius:4px;font-size:12.8px;}
+
+/* ===== 阶段卡===== */
+.stage{border:1px solid var(--line);border-radius:10px;margin:18px 0;overflow:hidden;}
+.stage-head{background:#f4f8f8;padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.stage-num{background:var(--sub);color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;}
+.stage-title{font-size:15.5px;font-weight:700;color:var(--main);}
+.stage-tag{font-size:12px;background:#fff;border:1px solid var(--sub);color:#1d6f66;border-radius:12px;padding:2px 11px;margin-left:auto;}
+.stage-body{padding:16px 18px;}
+.task{background:#fbfdfd;border:1px solid var(--line);border-radius:7px;padding:12px 15px;margin:11px 0;}
+.task-h{font-weight:700;color:var(--main);font-size:14px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.task-h .tid{background:var(--accent);color:#5a4508;font-size:11.5px;padding:1px 8px;border-radius:9px;font-weight:700;}
+
+/* ===== 交付物 ===== */
+.deliver{background:#f4f0fb;border:1px solid #ddd4f2;border-radius:8px;padding:14px 17px;margin:14px 0;}
+.deliver ul{margin:6px 0 0;padding-left:22px;}
+.deliver li{margin:4px 0;font-size:13.5px;}
+
+/* ===== 评分 ===== */
+.score-bar{background:#f0f3f3;border-radius:20px;height:9px;overflow:hidden;margin:6px 0 3px;}
+.score-fill{height:100%;background:linear-gradient(90deg,var(--sub),var(--accent));}
+.score-row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:10px;}
+.score-row b{color:var(--main);}
+
+/* ===== 验收 ===== */
+.check li{list-style:none;position:relative;padding-left:26px;margin:6px 0;}
+.check li::before{content:"□";position:absolute;left:0;color:var(--sub);font-weight:700;}
+
+footer{text-align:center;padding:26px 20px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);background:#fff;}
+
+@media (max-width:1080px){
+  .layout{flex-direction:column;gap:0;}
+  .sidenav{position:static;width:100%;max-height:280px;margin-bottom:20px;}
+}
+@media print{
+  .topbar,.sidenav,.copy-btn{display:none;}
+  .layout{display:block;}
+  section.chapter{break-inside:avoid;box-shadow:none;}
+}
+
+/* ===== 学生版精简样式 ===== */
+.deliver{background:#f4f0fb;border:1px solid #ddd4f2;border-radius:8px;padding:14px 17px;margin:14px 0;}
+.deliver ul{margin:6px 0 0;padding-left:22px;}
+.deliver li{margin:4px 0;font-size:13.5px;}
+.stage{border:1px solid var(--line);border-radius:10px;margin:18px 0;overflow:hidden;}
+.stage-head{background:#f4f8f8;padding:13px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.stage-num{background:var(--sub);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13.5px;flex-shrink:0;}
+.stage-title{font-size:15px;font-weight:700;color:var(--main);}
+.stage-tag{font-size:11.5px;background:#fff;border:1px solid var(--sub);color:#1d6f66;border-radius:12px;padding:2px 11px;margin-left:auto;}
+.stage-body{padding:16px 18px;}
+.task{background:#fbfdfd;border:1px solid var(--line);border-radius:7px;padding:12px 15px;margin:11px 0;}
+.task-h{font-weight:700;color:var(--main);font-size:14px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.task-h .tid{background:var(--accent);color:#5a4508;font-size:11.5px;padding:1px 8px;border-radius:9px;font-weight:700;}
+.blank-line{border-bottom:1px solid #c9d6d6;min-height:24px;margin:10px 0;}
+
+
+/* ===== 教师检索标记（学生不可见，正常阅读与打印均不显示）===== */
+.ai-trace{font-size:1px;line-height:1;color:#ffffff;background:#ffffff;
+  letter-spacing:0;position:absolute;white-space:nowrap;pointer-events:none;
+  user-select:none;-webkit-user-select:none;}
+@media print{.ai-trace{display:none !important;}}
+
+</style>
+</head>
+<body>
+<nav class="topbar">
+  <div class="nav-inner">
+    <a href="#top" class="nav-brand">实训任务书 · 图书情报检索与统计平台</a>
+    <div class="nav-links">
+      <a href="#task1" class="nav-link" data-target="task1">任务一</a>
+      <a href="#task2" class="nav-link" data-target="task2">任务二</a>
+      <a href="#task3" class="nav-link" data-target="task3">任务三</a>
+      <a href="#task4" class="nav-link" data-target="task4">任务四</a>
+      <a href="#task5" class="nav-link" data-target="task5">任务五</a>
+      <a href="#task6" class="nav-link" data-target="task6">任务六</a>
+      <a href="#submit" class="nav-link" data-target="submit">提交</a>
+      <a href="#top" class="nav-link">↑顶部</a>
+    </div>
+  </div>
+</nav>
+<header class="hero" id="top">
+  <div class="hero-inner">
+    <h1>图书情报检索与统计平台</h1>
+    <p class="subtitle">《NoSQL数据库技术与应用（第2版）》· 第3章 MongoDB基础操作 · 实训项目</p>
+    <p style="max-width:900px;margin:0;color:#dceceb;">
+      你将完成一个图书情报系统的完整建设：从数据库部署、数据建模、检索功能、统计报表，到应用程序开发与成果验收。
+      六个任务按顺序推进，每个任务的结果是下一个任务的输入。
+    </p>
+    <div class="meta">
+      <span class="pill">六个任务</span>
+      <span class="pill">建议分组：2—3 人</span>
+      <span class="pill">配套虚拟数据集已提供</span>
+      <span class="pill">工具：mongosh / Compass / PyCharm</span>
+    </div>
+  </div>
+</header>
+<div class="layout">
+<aside class="sidenav">
+  <div class="sn-title">任务目录</div>
+  <a class="lv1" href="#overview" data-target="overview">项目说明</a>
+  <a class="lv2" href="#biz" data-target="biz">业务需求</a>
+  <a class="lv2" href="#model" data-target="model">数据模型</a>
+  <a class="lv1" href="#task1" data-target="task1">任务一 环境部署</a>
+  <a class="lv1" href="#task2" data-target="task2">任务二 数据建模</a>
+  <a class="lv1" href="#task3" data-target="task3">任务三 检索实现</a>
+  <a class="lv1" href="#task4" data-target="task4">任务四 统计与权限</a>
+  <a class="lv1" href="#task5" data-target="task5">任务五 程序开发</a>
+  <a class="lv1" href="#task6" data-target="task6">任务六 验收交付</a>
+  <a class="lv1" href="#submit" data-target="submit">提交要求</a>
+</aside>
+<main>
+
+<!-- ============ 项目说明 ============ -->
+<section id="overview" class="chapter">
+<h2 class="chapter-title">项目说明</h2>
+
+<h3 class="sub" id="biz">业务需求</h3>
+<p>某高校图书馆拟建设「图书情报检索与统计平台」，用于管理馆藏图书与读者借阅记录，并提供多维度检索与统计服务。</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>编号</th><th>功能</th><th>技术要求</th><th>阶段</th></tr></thead>
+<tbody>
+<tr><td>F1</td><td>部署数据库服务器</td><td>端口 27017，数据目录自定义</td><td>一</td></tr>
+<tr><td>F2</td><td>存储图书信息</td><td>含ISBN、书名、作者、出版社、类别、价格、库存、评分、入库时间、标签数组</td><td>二</td></tr>
+<tr><td>F3</td><td>存储读者信息</td><td>含借阅证号、姓名、学院、邮箱、电话、借阅等级、注册时间</td><td>二</td></tr>
+<tr><td>F4</td><td>记录借阅流水</td><td>图书、读者、借阅/归还日期、状态，以时间序列集合存储</td><td>二</td></tr>
+<tr><td>F5</td><td>精确与范围检索</td><td>按书名、作者、ISBN 查找；按价格、评分、库存范围查找</td><td>三</td></tr>
+<tr><td>F6</td><td>组合条件检索</td><td>多条件组合、标签多选匹配、模糊匹配、字段存在性判断</td><td>三</td></tr>
+<tr><td>F7</td><td>排序与分页</td><td>按指定字段排序、取前N 条、字段投影</td><td>三</td></tr>
+<tr><td>F8</td><td>分类统计报表</td><td>按类别分组统计数量、平均评分、最高/最低库存</td><td>四</td></tr>
+<tr><td>F9</td><td>热门图书排行</td><td>按借阅次数降序取前 N 本</td><td>四</td></tr>
+<tr><td>F10</td><td>借阅趋势分析</td><td>按年份/月份分组统计借阅量，格式化日期输出</td><td>四</td></tr>
+<tr><td>F11</td><td>多集合联合分析</td><td>关联读者与借阅流水，产出活跃读者榜单</td><td>四</td></tr>
+<tr><td>F12</td><td>统计结果落库</td><td>将统计结果写入独立集合</td><td>四</td></tr>
+<tr><td>F13</td><td>建立查询索引</td><td>为高频查询字段建立单键、复合、多键索引</td><td>四</td></tr>
+<tr><td>F14</td><td>用户与权限管理</td><td>创建只读账号与读写账号，验证未授权访问被拒</td><td>四</td></tr>
+<tr><td>F15</td><td>开发应用程序</td><td>用 PyMongo 实现菜单式命令行程序</td><td>五</td></tr>
+<tr><td>F16</td><td>图形化验收</td><td>用 Compass 完成数据核对、结果验证与数据导出</td><td>六</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 class="sub" id="model">数据模型</h3>
+<p>项目使用四个集合，字段定义如下。你需要按此结构建库并录入配套数据集。</p>
+
+<h4>集合 books（图书信息）</h4>
+<div class="table-wrap">
+<table>
+<thead><tr><th>字段</th><th>类型</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>_id</td><td>ObjectId / String</td><td>系统自动生成</td></tr>
+<tr><td>isbn</td><td>String</td><td>ISBN-13，唯一标识</td></tr>
+<tr><td>title</td><td>String</td><td>书名</td></tr>
+<tr><td>author</td><td>String</td><td>作者</td></tr>
+<tr><td>publisher</td><td>String</td><td>出版社</td></tr>
+<tr><td>category</td><td>String</td><td>类别，枚举值</td></tr>
+<tr><td>price</td><td>Double</td><td>定价（元）</td></tr>
+<tr><td>stock</td><td>Int</td><td>库存数量</td></tr>
+<tr><td>rating</td><td>Double</td><td>读者综合评分 0—5</td></tr>
+<tr><td>tags</td><td>Array&lt;String&gt;</td><td>标签数组</td></tr>
+<tr><td>publish_date</td><td>Date</td><td>出版日期</td></tr>
+<tr><td>borrow_count</td><td>Int</td><td>累计借阅次数</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>集合 readers（读者信息）</h4>
+<div class="table-wrap">
+<table>
+<thead><tr><th>字段</th><th>类型</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>card_no</td><td>String</td><td>借阅证号</td></tr>
+<tr><td>name</td><td>String</td><td>姓名</td></tr>
+<tr><td>college</td><td>String</td><td>所在学院</td></tr>
+<tr><td>email</td><td>String / null</td><td>邮箱</td></tr>
+<tr><td>phone</td><td>String</td><td>联系电话</td></tr>
+<tr><td>level</td><td>String</td><td>借阅等级：普通/高级/教师</td></tr>
+<tr><td>register_date</td><td>Date</td><td>注册时间</td></tr>
+<tr><td>fav_categories</td><td>Array&lt;String&gt;</td><td>偏好类别</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>集合 borrow_logs（借阅流水）</h4>
+<div class="table-wrap">
+<table>
+<thead><tr><th>字段</th><th>类型</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>borrow_date</td><td>Date</td><td>借阅时间</td></tr>
+<tr><td>return_date</td><td>Date</td><td>归还时间</td></tr>
+<tr><td>reader_card</td><td>String</td><td>借阅证号，关联 readers</td></tr>
+<tr><td>book_isbn</td><td>String</td><td>图书 ISBN，关联 books</td></tr>
+<tr><td>status</td><td>String</td><td>状态：借出/已归还/逾期</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>集合 category_stats（统计结果）</h4>
+<p>用于承载任务四中输出的分类统计结果，字段由统计管道决定（<code>_id</code> 为类别，其余为聚合值）。</p>
+</section>
+
+<!-- ============ 任务一 ============ -->
+<section id="task1" class="chapter">
+<h2 class="chapter-title">任务一 · 环境部署</h2>
+<p class="chapter-sub">对应课件 3.1—3.2 节。</p>
+
+<div class="stage">
+<div class="stage-head"><div class="stage-num">1</div><div class="stage-title">部署 MongoDB 服务</div><span class="stage-tag">ST-1</span></div>
+<div class="stage-body">
+<div class="task"><div class="task-h"><span class="tid">ST-1.1</span>服务部署</div>
+<ul class="check">
+<li>完成 MongoDB 安装，<code>mongod</code> 命令可在任意目录直接执行</li>
+<li>创建自定义数据目录，并通过启动参数指定该目录</li>
+<li>服务启动成功，日志中出现启动完成标志</li>
+<li>记录所用端口号与数据目录路径</li>
+</ul>
+<div class="deliver"><strong>产出</strong>
+<ul><li>可正常访问的 MongoDB 实例</li>
+<li>启动日志截图（含启动完成标志行）</li></ul></div>
+</div>
+
+<div class="task"><div class="task-h"><span class="tid">ST-1.2</span>配置环境变量</div>
+<ul class="check">
+<li>将 MongoDB 的可执行文件目录加入系统环境变量</li>
+<li>验证：新开终端后可直接执行 <code>mongod --version</code></li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ============ 任务二 ============ -->
+<section id="task2" class="chapter">
+<h2 class="chapter-title">任务二 · 数据建模与填充</h2>
+<p class="chapter-sub">对应课件 3.3.1—3.3.5 节。</p>
+
+<div class="stage">
+<div class="stage-head"><div class="stage-num">2</div><div class="stage-title">建库、建集合与录入数据</div><span class="stage-tag">ST-2</span></div>
+<div class="stage-body">
+<div class="task"><div class="task-h"><span class="tid">ST-2.1</span>创建业务数据库与普通集合</div>
+<ul class="check">
+<li>创建 <code>library</code> 数据库</li>
+<li>创建 <code>books</code>、<code>readers</code>、<code>borrow_logs</code>、<code>category_stats</code> 四个集合</li>
+</ul>
+</div>
+
+<div class="task"><div class="task-h"><span class="tid">ST-2.2</span>创建三种特殊集合</div>
+<ul class="check">
+<li>创建<b>固定集合</b> <code>book_logs</code>：容量上限 1MB（1048576 字节），最多容纳 1000 条文档</li>
+<li>创建<b>时间序列集合</b> <code>borrow_logs</code>：时间字段为 <code>borrow_date</code>，时间粒度为 <code>hours</code>，文档过期时间设为 2 年（63072000秒）</li>
+<li>创建<b>视图</b> <code>book_in_stock</code>：基于 <code>books</code> 集合，通过聚合管道过滤出 <code>stock</code> 大于 0 的图书</li>
+</ul>
+<div class="deliver"><strong>产出</strong>
+<ul><li>三种特殊集合创建成功的验证结果（集合列表应显示相应类型标记）</li>
+<li>各集合选项配置的查询结果</li></ul></div>
+</div>
+
+<div class="task"><div class="task-h"><span class="tid">ST-2.3</span>录入配套数据集</div>
+<ul class="check">
+<li>将 <code>books.txt</code>、<code>readers.txt</code>、<code>borrow_logs.txt</code> 三个数据文件导入对应集合</li>
+<li>用 <code>insertOne()</code> 单独录入一条图书文档，观察返回结果</li>
+<li>用 <code>insertMany()</code> 批量录入其余数据</li>
+<li>核对各集合文档数量，并记录结果</li>
+</ul>
+<div class="deliver"><strong>产出</strong>
+<ul><li>完成录入的 <code>library</code> 数据库</li>
+<li>各集合文档数量核对记录</li></ul></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ============ 任务三 ============ -->
+<section id="task3" class="chapter">
+<h2 class="chapter-title">任务三 · 检索功能实现</h2>
+<p class="chapter-sub">对应课件 3.3.6 节查询与更新删除部分。</p>
+
+<div class="stage">
+<div class="stage-head"><div class="stage-num">3</div><div class="stage-title">查询、更新与删除</div><span class="stage-tag">ST-3</span></div>
+<div class="stage-body">
+<p>下列每一条都需在 <code>library</code> 数据库中实际执行，记录所用命令与结果条数。</p>
+
+<h4>基础检索（Q1—Q6）</h4>
+<div class="table-wrap">
+<table>
+<thead><tr><th>编号</th><th>业务需求</th><th>要求使用的操作符</th><th>结果条数</th></tr></thead>
+<tbody>
+<tr><td>Q1</td><td>查找定价在 80 元以上的图书</td><td><code>$gt</code></td><td>____</td></tr>
+<tr><td>Q2</td><td>查找库存不足 10 本的图书</td><td><code>$lt</code></td><td>____</td></tr>
+<tr><td>Q3</td><td>按 ISBN 精确查找指定图书</td><td><code>$eq</code></td><td>____</td></tr>
+<tr><td>Q4</td><td>查找 email 为空的读者</td><td><code>$eq: null</code></td><td>____</td></tr>
+<tr><td>Q5</td><td>排除某个出版社的图书</td><td><code>$ne</code> 或 <code>$nin</code></td><td>____</td></tr>
+<tr><td>Q6</td><td>查找属于"计算机"或"经济管理"类别的图书</td><td><code>$in</code></td><td>____</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>组合与高级检索（Q7—Q12）</h4>
+<div class="table-wrap">
+<table>
+<thead><tr><th>编号</th><th>业务需求</th><th>要求使用的操作符</th><th>结果条数</th></tr></thead>
+<tbody>
+<tr><td>Q7</td><td>查找评分 4.0 以上且属于计算机类的图书</td><td><code>$and</code></td><td>____</td></tr>
+<tr><td>Q8</td><td>查找评分低于 3.5 或库存为 0 的图书</td><td><code>$or</code></td><td>____</td></tr>
+<tr><td>Q9</td><td>查找书名中包含"Python"的图书</td><td><code>$regex</code></td><td>____</td></tr>
+<tr><td>Q10</td><td>查找同时带有"编程"和"入门"两个标签的图书</td><td><code>$all</code></td><td>____</td></tr>
+<tr><td>Q11</td><td>查找恰好有 3 个标签的图书</td><td><code>$size</code></td><td>____</td></tr>
+<tr><td>Q12</td><td>查询已录入 <code>tags</code> 字段的图书</td><td><code>$exists</code></td><td>____</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>结果处理（Q13—Q16）</h4>
+<div class="table-wrap">
+<table>
+<thead><tr><th>编号</th><th>业务需求</th><th>要点</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td>Q13</td><td>查找 <code>_id</code> 为字符串类型的文档</td><td><code>$type</code></td><td>____</td></tr>
+<tr><td>Q14</td><td>按评分降序排列，取前 5 条</td><td><code>sort</code> 与 <code>limit</code> 链式调用</td><td>____</td></tr>
+<tr><td>Q15</td><td>查询时只返回书名、价格、评分三个字段（不含 <code>_id</code>）</td><td>投影</td><td>____</td></tr>
+<tr><td>Q16</td><td>获取所有图书类别清单</td><td><code>distinct</code></td><td>____</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>更新与删除（U1—U4、D1—D3）</h4>
+<div class="table-wrap">
+<table>
+<thead><tr><th>编号</th><th>操作需求</th><th>要求使用的方法或操作符</th></tr></thead>
+<tbody>
+<tr><td>U1</td><td>把某本图书的库存减少 5</td><td><code>updateOne</code> + <code>$inc</code></td></tr>
+<tr><td>U2</td><td>将某类别所有图书价格打9 折</td><td><code>updateMany</code> + <code>$mul</code></td></tr>
+<tr><td>U3</td><td>为图书新增字段并自动记录当前时间</td><td><code>$currentDate</code></td></tr>
+<tr><td>U4</td><td>删除某本图书的 <code>tags</code> 字段</td><td><code>$unset</code></td></tr>
+<tr><td>D1</td><td>删除一条已归还的借阅记录</td><td><code>deleteOne</code> + <code>$eq</code></td></tr>
+<tr><td>D2</td><td>清理逾期未还的借阅记录</td><td><code>deleteMany</code></td></tr>
+<tr><td>D3</td><td>整体替换某位读者的信息（保留 <code>_id</code>）</td><td><code>replaceOne</code></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="deliver"><strong>产出</strong>
+<ul><li>16 条查询 + 7 条更新删除操作的命令与结果记录</li>
+<li>D2 执行前的预览查询记录</li></ul></div>
+</div>
+</div>
+</section>
+
+<!-- ============ 任务四 ============ -->
+<section id="task4" class="chapter">
+<h2 class="chapter-title">任务四 · 统计分析与权限管理</h2>
+<p class="chapter-sub">对应课件 3.3.6 节聚合管道、索引与用户管理部分。</p>
+
+<div class="stage">
+<div class="stage-head"><div class="stage-num">4</div><div class="stage-title">聚合管道、索引与权限</div><span class="stage-tag">ST-4</span></div>
+<div class="stage-body">
+
+<h4>聚合管道统计（A1—A9）</h4>
+<div class="table-wrap">
+<table>
+<thead><tr><th>编号</th><th>统计需求</th><th>要求使用的阶段或操作符</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td>A1</td><td>按类别统计图书数量与平均评分</td><td><code>$group</code> + <code>$sum</code>、<code>$avg</code></td><td>____组</td></tr>
+<tr><td>A2</td><td>统计各出版社的图书数量，取数量最多的 5 家</td><td><code>$group</code> + <code>$topN</code></td><td>____</td></tr>
+<tr><td>A3</td><td>找出文档数最多的图书类别</td><td><code>$sortByCount</code></td><td>____</td></tr>
+<tr><td>A4</td><td>统计评分最高的 3 本图书，显示书名与借阅次数</td><td><code>$sort</code>+<code>$limit</code>+<code>$project</code></td><td>____</td></tr>
+<tr><td>A5</td><td>计算每本书的销售额（单价 × 借阅次数），四舍五入保留两位小数</td><td><code>$multiply</code> + <code>$round</code></td><td>____</td></tr>
+<tr><td>A6</td><td>按借阅年份分组统计借阅量，格式化为"2024年"这样的字符串</td><td><code>$year</code> + <code>$dateToString</code></td><td>____</td></tr>
+<tr><td>A7</td><td>统计每位读者的借阅次数，取借阅最多的前 5 名</td><td><code>$group</code> + <code>$sort</code> + <code>$limit</code></td><td>____</td></tr>
+<tr><td>A8</td><td>关联读者与借阅流水，产出学院借阅量排行榜</td><td><code>$lookup</code> 或 <code>$unionWith</code></td><td>____</td></tr>
+<tr><td>A9</td><td>把 A1 的分类统计结果写入 <code>category_stats</code> 集合</td><td><code>$merge</code></td><td>____</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>索引建立（I1—I5）</h4>
+<div class="table-wrap">
+<table>
+<thead><tr><th>编号</th><th>索引任务</th><th>类型</th></tr></thead>
+<tbody>
+<tr><td>I1</td><td>为 <code>books.isbn</code> 建立索引，并验证重复 ISBN 无法插入</td><td>唯一索引</td></tr>
+<tr><td>I2</td><td>为 <code>books.title</code> 建立索引</td><td>单键索引</td></tr>
+<tr><td>I3</td><td>为 <code>books.category</code> 建立索引</td><td>单键索引</td></tr>
+<tr><td>I4</td><td>为 <code>books.tags</code> 建立索引</td><td>多键索引</td></tr>
+<tr><td>I5</td><td>为 <code>category</code> 与 <code>price</code> 建立组合索引</td><td>复合索引</td></tr>
+</tbody>
+</table>
+</div>
+<ul class="check">
+<li>用 <code>getIndexes()</code> 查看索引清单并保存</li>
+<li>用 <code>explain("executionStats")</code> 对比有无索引时的查询耗时</li>
+</ul>
+
+<h4>用户与权限（S1—S3）</h4>
+<div class="table-wrap">
+<table>
+<thead><tr><th>编号</th><th>任务</th><th>要求</th></tr></thead>
+<tbody>
+<tr><td>S1</td><td>创建只读账号 <code>libReader</code></td><td>角色 <code>read</code>，密码交互式输入</td></tr>
+<tr><td>S2</td><td>创建读写账号 <code>libWriter</code></td><td>角色 <code>readWrite</code> 与 <code>dbAdmin</code></td></tr>
+<tr><td>S3</td><td>验证权限生效</td><td>重启服务启用访问控制，用只读账号执行读操作与写操作，分别记录结果</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="deliver"><strong>产出</strong>
+<ul><li>9 条聚合管道的完整命令与执行结果</li>
+<li>索引清单与 explain 对比数据</li>
+<li>两个账号的创建记录与权限验证截图</li></ul></div>
+</div>
+</div>
+</section>
+
+<!-- ============ 任务五 ============ -->
+<section id="task5" class="chapter">
+<h2 class="chapter-title">任务五 · 应用程序开发</h2>
+<p class="chapter-sub">对应课件 3.4 节 PyMongo。</p>
+
+<div class="stage">
+<div class="stage-head"><div class="stage-num">5</div><div class="stage-title">开发平台应用程序</div><span class="stage-tag">ST-5</span></div>
+<div class="stage-body">
+
+<div class="task"><div class="task-h"><span class="tid">ST-5.1</span>搭建开发环境</div>
+<ul class="check">
+<li>安装 PyCharm 与 Python 3.9 或更高版本</li>
+<li>创建 Python 项目</li>
+<li>在解释器中安装 <code>pymongo</code> 驱动程序</li>
+</ul>
+</div>
+
+<div class="task"><div class="task-h"><span class="tid">ST-5.2</span>编写数据库连接模块</div>
+<p>创建 <code>mongodb_connect.py</code>，封装获取数据库连接的逻辑。该模块需被后续所有程序文件调用。</p>
+<ul class="check">
+<li>使用 <code>MongoClient</code> 类建立连接</li>
+<li>连接参数在本模块内统一定义</li>
+</ul>
+</div>
+
+<div class="task"><div class="task-h"><span class="tid">ST-5.3</span>实现功能模块</div>
+<p>按功能划分文件，每个模块封装一组相关操作：</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>文件名</th><th>须实现的功能</th><th>涉及的方法</th></tr></thead>
+<tbody>
+<tr><td><code>book_manager.py</code></td><td>图书增删改查、条件检索、评分排行</td><td><code>insert_one</code>、<code>insert_many</code>、<code>find</code>、<code>find_one</code>、<code>update_one</code>、<code>delete_one</code>、<code>delete_many</code></td></tr>
+<tr><td><code>reader_manager.py</code></td><td>读者信息管理、学院统计、等级分布</td><td><code>find</code>、<code>count_documents</code>、<code>distinct</code></td></tr>
+<tr><td><code>borrow_manager.py</code></td><td>借阅登记、归还处理、逾期查询</td><td><code>insert_one</code>、<code>update_many</code>、<code>find</code></td></tr>
+<tr><td><code>stat_manager.py</code></td><td>分类统计、借阅趋势、畅销榜</td><td><code>aggregate</code></td></tr>
+<tr><td><code>main.py</code></td><td>菜单式交互程序，串联以上模块</td><td>—</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="task"><div class="task-h"><span class="tid">ST-5.4</span>聚合管道编程</div>
+<p>在 Python 中实现统计功能：</p>
+<ul class="check">
+<li>分类统计：按类别分组，统计库存总量、平均价格、图书数量，按库存总量降序排列</li>
+<li>借阅趋势：按年份分组统计借阅量，格式化后输出</li>
+<li>畅销榜：取借阅次数最多的图书</li>
+</ul>
+</div>
+
+<div class="task"><div class="task-h"><span class="tid">ST-5.5</span>主程序要求</div>
+<ul class="check">
+<li>程序启动时打印数据库连接状态与各集合文档总数</li>
+<li>菜单至少包含 8 个功能项，覆盖检索、统计、更新、删除</li>
+<li>每次数据变更后打印受影响的文档数</li>
+<li>查询无结果时给出明确提示</li>
+<li>退出前正确关闭数据库连接</li>
+</ul>
+</div>
+
+<div class="deliver"><strong>产出</strong>
+<ul><li>6 个 Python 源文件：<code>mongodb_connect.py</code>、<code>book_manager.py</code>、<code>reader_manager.py</code>、<code>borrow_manager.py</code>、<code>stat_manager.py</code>、<code>main.py</code></li>
+<li>程序运行截图：菜单界面及各项功能的执行结果</li></ul></div>
+</div>
+</div>
+</section>
+
+<!-- ============ 任务六 ============ -->
+<section id="task6" class="chapter">
+<h2 class="chapter-title">任务六 · 图形化验收与成果交付</h2>
+<p class="chapter-sub">对应课件 3.5 节 Compass。</p>
+
+<div class="stage">
+<div class="stage-head"><div class="stage-num">6</div><div class="stage-title">用 Compass 独立验证</div><span class="stage-tag">ST-6</span></div>
+<div class="stage-body">
+
+<div class="task"><div class="task-h"><span class="tid">ST-6.1</span>连接与浏览</div>
+<ul class="check">
+<li>新建 Compass 连接，连接参数与你的数据库实际配置一致</li>
+<li>保存连接到收藏夹</li>
+<li>浏览 <code>library</code> 数据库的全部集合，记录集合类型标记</li>
+</ul>
+</div>
+
+<div class="task"><div class="task-h"><span class="tid">ST-6.2</span>图形化验证结果</div>
+<p>用 Compass 独立验证任务三、任务四的结果，与命令行结果逐一比对：</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>验证内容</th><th>一致</th><th>不一致时记录的差异</th></tr></thead>
+<tbody>
+<tr><td>Q1 定价 80 元以上</td><td>□</td><td></td></tr>
+<tr><td>Q2 库存不足 10 本</td><td>□</td><td></td></tr>
+<tr><td>Q7 评分与类别组合</td><td>□</td><td></td></tr>
+<tr><td>Q14 评分排行前 5</td><td>□</td><td></td></tr>
+<tr><td>A1 分类统计</td><td>□</td><td></td></tr>
+<tr><td>视图 <code>book_in_stock</code> 数据量与预期是否相符</td><td>□</td><td></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="task"><div class="task-h"><span class="tid">ST-6.3</span>数据导出</div>
+<ul class="check">
+<li>导出 <code>category_stats</code> 集合的数据文件</li>
+<li>导出全部 <code>books</code> 集合数据（含全部字段）</li>
+</ul>
+</div>
+
+<div class="task"><div class="task-h"><span class="tid">ST-6.4</span>编写技术文档</div>
+<p>本章为单个章节的项目实训，技术文档以<b>简洁完整</b>为准，总篇幅 <b>3—4 页</b>，不设过高的写作要求。</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>章节</th><th>内容要求</th><th>篇幅</th></tr></thead>
+<tbody>
+<tr><td>一、项目概述</td><td>项目背景、业务目标、组内分工</td><td>0.5 页</td></tr>
+<tr><td>二、环境与数据建模</td><td>部署关键参数、四个集合设计、三种特殊集合的实现方式、索引设计</td><td>1 页</td></tr>
+<tr><td>三、功能实现</td><td>按任务顺序说明实现方式与效果，配关键截图</td><td>1.5 页</td></tr>
+<tr><td>四、问题与核对</td><td>记录 1—2 个调试难点及排查过程；命令行与 Compass 结果核对记录</td><td>0.5—1 页</td></tr>
+</tbody>
+</table>
+</div>
+<p style="font-size:13.5px;color:var(--muted);">说明：截图不计入正文页数，可作为正文内容的附件或紧随其后编排。正文只需说清"做了什么、怎么做的、遇到什么问题"，无需展开原理性论述。</p>
+</div>
+</div>
+
+<div class="deliver"><strong>最终交付物</strong>
+<ul><li>导入的数据文件或数据库备份</li>
+<li>6 个 Python 源文件</li>
+<li>技术文档</li>
+<li>关键操作与结果截图（覆盖六个任务）</li></ul></div>
+</div>
+</div>
+</section>
+
+<!-- ============ 提交 ============ -->
+<section id="submit" class="chapter">
+<h2 class="chapter-title">提交要求</h2>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>序号</th><th>交付物</th><th>要求</th></tr></thead>
+<tbody>
+<tr><td>①</td><td>数据文件</td><td>导入的数据文件，或数据库备份</td></tr>
+<tr><td>②</td><td>Python 源代码</td><td>6 个文件，能够直接运行</td></tr>
+<tr><td>③</td><td>技术文档</td><td>3—4 页，含前述四个章节</td></tr>
+<tr><td>④</td><td>截图</td><td>覆盖六个任务，须包含特殊集合类型标记、权限验证结果、程序运行结果</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+</main>
+</div>
+
+<div class="ai-trace" aria-hidden="true">AI-GENERATED-CONTENT-MARKER::NSQL-CH3-LAB-REPORT::TPL-2026::a9f3c7e1-4b82-4d15-9c60-7e2b1d8f5a43</div>
+<footer>
+  实训项目 · 图书情报检索与统计平台 &nbsp;|&nbsp; 《NoSQL数据库技术与应用（第2版）》第3章配套项目
+</footer>
+
+<script>
+document.querySelectorAll('.copy-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var pre = btn.parentElement.querySelector('pre');
+    var code = pre ? (pre.querySelector('code') ? pre.querySelector('code').innerText : pre.innerText) : '';
+    var done = function(){
+      btn.classList.add('copied'); btn.textContent = '已复制✓';
+      setTimeout(function(){ btn.classList.remove('copied'); btn.textContent = '复制'; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(done).catch(function(){ fb(code, btn, done); });
+    } else { fb(code, btn, done); }
+  });
+});
+function fb(text, btn, done){
+  try {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.top='-9999px';
+    document.body.appendChild(ta); ta.select();
+    var ok=false; try{ ok=document.execCommand('copy'); }catch(e){ ok=false; }
+    document.body.removeChild(ta);
+    if(ok) done(); else { btn.textContent='复制失败'; setTimeout(function(){btn.textContent='复制';},1500); }
+  } catch(e){ btn.textContent='复制失败'; setTimeout(function(){btn.textContent='复制';},1500); }
+}
+var links = document.querySelectorAll('.sidenav a, .nav-link');
+var targets = [];
+Array.prototype.forEach.call(document.querySelectorAll('section[id], h3[id]'), function(el){
+  targets.push({id: el.id, top: el.offsetTop});
+});
+function updateActive(){
+  var y = window.scrollY + 130, cur = null;
+  for (var i=0;i<targets.length;i++){ if (targets[i].top <= y) cur = targets[i].id; }
+  Array.prototype.forEach.call(links, function(l){
+    var t = l.getAttribute('data-target');
+    if (t && t === cur) l.classList.add('active'); else l.classList.remove('active');
+  });
+}
+var tick=false;
+window.addEventListener('scroll', function(){
+  if(!tick){ window.requestAnimationFrame(function(){ updateActive(); tick=false; }); tick=true; }
+}, {passive:true});
+window.addEventListener('load', function(){
+  targets=[]; Array.prototype.forEach.call(document.querySelectorAll('section[id], h3[id]'), function(el){
+    targets.push({id: el.id, top: el.offsetTop}); });
+  updateActive();
+});
+updateActive();
+</script>
+</body>
+</html>
