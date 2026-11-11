@@ -1,0 +1,21 @@
+# Python 缓存与虚拟环境
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# 本地认证配置（保留示例文件）
+.env
+.env.*
+!.env.example
+
+# IDE、测试缓存与日志
+.idea/
+.vscode/
+.pytest_cache/
+*.log
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
